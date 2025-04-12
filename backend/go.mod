@@ -4,7 +4,9 @@ go 1.23.7
 
 require (
 	github.com/golang-jwt/jwt/v4 v4.5.2
+	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.13.3
+	github.com/lib/pq v1.10.9
 )
 
 require (
@@ -17,4 +19,5 @@ require (
 	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/time v0.8.0 // indirect
 )
