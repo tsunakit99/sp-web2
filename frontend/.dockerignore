@@ -1,0 +1,26 @@
+# 一般的な除外
+node_modules
+npm-debug.log
+.env
+.dockerignore
+Dockerfile*
+docker-compose*
+
+# エディタ関連
+.vscode
+.idea
+*.swp
+
+# Git 関連
+.git
+.gitignore
+
+# OSのメタデータ
+.DS_Store
+Thumbs.db
+
+# Go build artifacts（backend-go用）
+*.out
+*.exe
+*.test
+app

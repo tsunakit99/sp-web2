@@ -1,0 +1,111 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: sp-web2-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # コンテナ内の node_modules をホストと分離して衝突防止
+    depends_on:
+      - backend
+    env_file: .env
+    environment:
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: sp-web2-backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+    env_file: .env
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+
+  # 以下はSupabase関連（省略した定義は前と同じ）
+
+  db:
+    image: supabase/postgres:15.8.1.071
+    container_name: supabase-db
+    ports:
+      - "54322:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - supabase-db-data:/var/lib/postgresql/data
+
+  kong:
+    image: kong:2.8.1
+    container_name: supabase-kong
+    ports:
+      - "54321:8000"
+    depends_on:
+      - db
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong.yml
+      KONG_HTTP_PROXY_LISTEN: 0.0.0.0:8000
+    volumes:
+      - ./supabase/kong/kong.yml:/kong.yml:ro
+    restart: unless-stopped
+    
+  auth:
+    image: supabase/gotrue:v2.170.0
+    depends_on:
+      - db
+      - kong
+    env_file: .env
+    environment:
+      GOTRUE_SITE_URL: http://kong:8000
+      GOTRUE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      GOTRUE_DB_DRIVER: postgres
+      DATABASE_URL: ${SUPABASE_DB_URL}
+      API_EXTERNAL_URL: http://kong:8000
+
+  rest:
+    image: postgrest/postgrest:v12.2.8
+    depends_on:
+      - db
+    env_file: .env
+    environment:
+      PGRST_DB_URI: ${SUPABASE_DB_URL}
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      PGRST_DB_SCHEMA: public
+
+  meta:
+    image: supabase/postgres-meta:v0.83.0
+    depends_on:
+      - db
+    environment:
+      PG_META_DB_HOST: db
+      PG_META_DB_PORT: 5432
+      PG_META_DB_NAME: postgres
+      PG_META_DB_USER: postgres
+      PG_META_DB_PASSWORD: postgres
+
+  studio:
+    image: supabase/studio:20250409-28c1c21
+    ports:
+      - '54323:3000'
+    depends_on:
+      - rest
+    env_file: .env
+    environment:
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+      STUDIO_PG_META_URL: http://meta:8080
+
+volumes:
+  supabase-db-data:

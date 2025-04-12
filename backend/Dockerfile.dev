@@ -1,0 +1,12 @@
+FROM golang:1.24.2
+
+WORKDIR /app
+
+# キャッシュ活用のため go.mod, go.sum だけ先にコピー
+COPY go.mod go.sum ./
+RUN go mod download
+
+# アプリケーションのソースをコピー
+COPY . .
+
+CMD ["go", "run", "./cmd/main.go"]

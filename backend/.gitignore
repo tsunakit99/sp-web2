@@ -1,0 +1,39 @@
+# バイナリファイル
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# ビルドディレクトリ
+/bin/
+/build/
+/dist/
+
+# テストキャッシュやカバレッジ
+*.cover
+*.test
+*.prof
+
+# モジュールキャッシュ（通常は除外しないが、必要なら）
+/vendor/
+
+# Go workspace ファイル（Go 1.18+）
+go.work
+go.work.sum
+
+# IDEやエディタの設定ファイル
+.vscode/
+.idea/
+*.swp
+*.swo
+*.DS_Store
+
+# ログファイルなど
+*.log
+
+# 環境設定ファイル（必要に応じて）
+.env
+.env.*

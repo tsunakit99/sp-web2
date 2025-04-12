@@ -1,0 +1,75 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: sp-web2-frontend:prod
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: sp-web2-backend:prod
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  db:
+    image: supabase/postgres:15.6.1.146
+    container_name: supabase-db
+    restart: unless-stopped
+    ports:
+      - "54322:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  auth:
+    image: supabase/gotrue:v2.150.1
+    depends_on:
+      - db
+    ports:
+      - "9999:9999"
+    env_file:
+      - .env
+
+  rest:
+    image: supabase/postgrest:v11.2.1
+    depends_on:
+      - db
+    ports:
+      - "3001:3000"
+    env_file:
+      - .env
+
+  meta:
+    image: supabase/postgres-meta:v0.73.0
+    depends_on:
+      - db
+    ports:
+      - "8081:8080"
+    env_file:
+      - .env
+
+  studio:
+    image: supabase/studio:20240207-4b2174c
+    depends_on:
+      - db
+    ports:
+      - "54323:3000"
+    env_file:
+      - .env
+
+volumes:
+  db_data:
